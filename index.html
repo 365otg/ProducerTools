@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charles Paris Music Producer Tools - Client-Side Audio & Image Tools</title>
+    <meta name="description" content="Charles Paris Music Producer Tools: A comprehensive collection of client-side HTML utilities for audio and image processing, including trimming, normalizing, resizing, filtering, and more. No external APIs.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to ensure Inter font and smooth transitions */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #1a202c; /* Dark background for body */
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            padding: 2rem;
+            box-sizing: border-box;
+            color: #e2e8f0; /* Light text color for body */
+        }
+
+        /* Main container styling */
+        .utility-container {
+            background-color: #2d3748; /* Slightly lighter dark background */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2); /* Darker shadow */
+            padding: 2.5rem; /* Increased padding */
+            width: 100%;
+            max-width: 960px; /* Increased max-width for better layout */
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Navigation tabs styling */
+        .tab-button {
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            background-color: #4a5568; /* Dark gray for inactive */
+            color: #cbd5e0; /* Light gray text */
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+        .tab-button.active {
+            background-color: #667eea; /* Indigo for active */
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover:not(.active) {
+            background-color: #4a5568; /* Slightly darker on hover */
+            transform: translateY(-2px);
+        }
+
+        /* Utility section styling */
+        .utility-section {
+            display: none;
+            padding: 1.5rem;
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 1rem;
+            background-color: #2d3748; /* Same as container for consistency */
+            min-height: 300px; /* Ensure consistent height */
+        }
+
+        .utility-section.active {
+            display: block;
+        }
+
+        /* Form elements styling */
+        input[type="text"],
+        input[type="number"],
+        input[type="range"], /* Added for sliders */
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 0.5rem;
+            background-color: #4a5568; /* Darker background */
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            outline: none;
+            color: #e2e8f0; /* Light text */
+        }
+        /* Placeholder color for dark mode inputs */
+        input::placeholder {
+            color: #a0aec0; /* Lighter gray for placeholders */
+        }
+
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="range"]:focus,
+        select:focus {
+            border-color: #667eea; /* Indigo on focus */
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4); /* Darker shadow on focus */
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            background-color: #667eea; /* Indigo button */
+            color: #ffffff;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        button:hover {
+            background-color: #5a67d8; /* Darker indigo on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Audio player styling */
+        audio {
+            width: 100%;
+            margin-top: 1rem;
+            background-color: #4a5568;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        /* Canvas styling for image tools */
+        canvas {
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            background-color: #2d3748;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 1rem;
+        }
+
+        /* Footer links styling */
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem; /* Increased gap for better spacing */
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #4a5568; /* Separator line */
+        }
+
+        .footer-links a {
+            color: #667eea; /* Indigo color for links */
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+
+        .footer-links a:hover {
+            color: #5a67d8; /* Darker indigo on hover */
+            transform: translateY(-2px);
+        }
+
+        /* Message box for alerts */
+        #message-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #3f51b5; /* Indigo background */
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            text-align: center;
+            font-weight: 600;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #message-box.error {
+            background-color: #ef4444; /* Red for errors */
+        }
+
+        #message-box button {
+            margin-top: 1rem;
+            background-color: #4a5568;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #message-box button:hover {
+            background-color: #667eea;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        /* Promotional video/iframe styling */
+        .promotional-video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .promotional-video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: 1rem; /* Apply border-radius to iframe as well */
+        }
+
+        .promotional-links {
+            background-color: #2d3748;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #4a5568;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .promotional-links h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .promotional-links a {
+            display: inline-block;
+            background-color: #4a5568;
+            color: #e2e8f0;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 0.5rem;
+            text-decoration: none;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+
+        .promotional-links a:hover {
+            background-color: #667eea;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="utility-container">
+        <h1 class="text-4xl font-extrabold text-center text-white mb-6">Charles Paris Music Producer Tools</h1>
+        <p class="text-center text-gray-300 mb-8">A collection of client-side tools for audio and image production.</p>
+
+        <!-- Promotional Video Section (YouTube Playlist Embed) -->
+        <div class="promotional-video-container">
+            <h2 class="text-xl font-bold text-white text-center mb-4">Check Out My Music!</h2>
+            <iframe
+                src="https://www.youtube.com/embed/videoseries?list=OLAK5uy_mW0i-NiUNzZr86QNVoJgNfwisidyoCREA&autoplay=1&mute=1&loop=1&controls=1"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+            </iframe>
+            <p class="text-center text-gray-400 text-sm mt-2">Enjoy my latest music directly from YouTube!</p>
+        </div>
+
+        <!-- Utility Sections -->
+
+        <!-- Audio Trimmer -->
+        <div id="audio-trimmer" class="utility-section active">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Trimmer</h2>
+            <input type="file" id="trim-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="trim-start" class="block text-gray-300 text-sm font-bold mb-2">Start Time (seconds):</label>
+                    <input type="number" id="trim-start" value="0" min="0" step="0.1" placeholder="0">
+                </div>
+                <div>
+                    <label for="trim-end" class="block text-gray-300 text-sm font-bold mb-2">End Time (seconds):</label>
+                    <input type="number" id="trim-end" value="10" min="0" step="0.1" placeholder="10">
+                </div>
+            </div>
+            <button onclick="trimAudio()">Trim Audio</button>
+            <audio id="trimmed-audio-player" controls class="hidden"></audio>
+            <a id="download-trimmed-audio" download="trimmed_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Trimmed Audio</a>
+        </div>
+
+        <!-- Audio Normalizer -->
+        <div id="audio-normalizer" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Normalizer</h2>
+            <input type="file" id="normalize-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="target-peak-db" class="block text-gray-300 text-sm font-bold mb-2">Target Peak (dBFS):</label>
+                <input type="range" id="target-peak-db" min="-30" max="0" value="-3" step="0.1" class="w-full">
+                <span id="target-peak-value" class="block text-center text-gray-400 mt-1">-3 dBFS</span>
+            </div>
+            <button onclick="normalizeAudio()">Normalize Audio</button>
+            <audio id="normalized-audio-player" controls class="hidden"></audio>
+            <a id="download-normalized-audio" download="normalized_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Normalized Audio</a>
+        </div>
+
+        <!-- Audio Reverser -->
+        <div id="audio-reverser" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Reverser</h2>
+            <input type="file" id="reverse-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <button onclick="reverseAudio()">Reverse Audio</button>
+            <audio id="reversed-audio-player" controls class="hidden"></audio>
+            <a id="download-reversed-audio" download="reversed_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Reversed Audio</a>
+        </div>
+
+        <!-- Audio Speed Changer -->
+        <div id="audio-speed-changer" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Speed Changer</h2>
+            <input type="file" id="speed-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="speed-change-rate" class="block text-gray-300 text-sm font-bold mb-2">Speed Rate (0.5x to 2x):</label>
+                <input type="range" id="speed-change-rate" min="0.5" max="2" value="1" step="0.1" class="w-full">
+                <span id="speed-change-value" class="block text-center text-gray-400 mt-1">1x</span>
+            </div>
+            <button onclick="changeAudioSpeed()">Change Speed</button>
+            <audio id="speed-changed-audio-player" controls class="hidden"></audio>
+            <a id="download-speed-changed-audio" download="speed_changed_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Speed Changed Audio</a>
+        </div>
+
+        <!-- Simple Audio Looper -->
+        <div id="audio-looper" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Simple Audio Looper</h2>
+            <input type="file" id="looper-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="loop-start" class="block text-gray-300 text-sm font-bold mb-2">Loop Start Time (seconds):</label>
+                    <input type="number" id="loop-start" value="0" min="0" step="0.1" placeholder="0">
+                </div>
+                <div>
+                    <label for="loop-end" class="block text-gray-300 text-sm font-bold mb-2">Loop End Time (seconds):</label>
+                    <input type="number" id="loop-end" value="5" min="0" step="0.1" placeholder="5">
+                </div>
+                <div>
+                    <label for="loop-count" class="block text-gray-300 text-sm font-bold mb-2">Number of Loops:</label>
+                    <input type="number" id="loop-count" value="2" min="1" step="1" placeholder="2">
+                </div>
+            </div>
+            <button onclick="loopAudio()">Create Looped Audio</button>
+            <audio id="looper-audio-player" controls class="hidden"></audio>
+            <a id="download-looped-audio" download="looped_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Looped Audio</a>
+        </div>
+
+        <!-- Basic Delay/Echo Effect -->
+        <div id="audio-delay" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Basic Delay/Echo Effect</h2>
+            <input type="file" id="delay-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="delay-time" class="block text-gray-300 text-sm font-bold mb-2">Delay Time (seconds):</label>
+                    <input type="range" id="delay-time" min="0.05" max="1" value="0.3" step="0.01" class="w-full">
+                    <span id="delay-time-value" class="block text-center text-gray-400 mt-1">0.3s</span>
+                </div>
+                <div>
+                    <label for="delay-feedback" class="block text-gray-300 text-sm font-bold mb-2">Feedback (0-1):</label>
+                    <input type="range" id="delay-feedback" min="0" max="0.9" value="0.5" step="0.05" class="w-full">
+                    <span id="delay-feedback-value" class="block text-center text-gray-400 mt-1">0.5</span>
+                </div>
+            </div>
+            <button onclick="applyDelay()">Apply Delay</button>
+            <audio id="delay-audio-player" controls class="hidden"></audio>
+            <a id="download-delay-audio" download="delay_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Delay Audio</a>
+        </div>
+
+        <!-- Audio Compressor (Simple) -->
+        <div id="audio-compressor" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Compressor (Simple)</h2>
+            <input type="file" id="compressor-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="compressor-threshold" class="block text-gray-300 text-sm font-bold mb-2">Threshold (dB):</label>
+                    <input type="range" id="compressor-threshold" min="-100" max="0" value="-24" step="1" class="w-full">
+                    <span id="compressor-threshold-value" class="block text-center text-gray-400 mt-1">-24 dB</span>
+                </div>
+                <div>
+                    <label for="compressor-ratio" class="block text-gray-300 text-sm font-bold mb-2">Ratio (1-20):</label>
+                    <input type="range" id="compressor-ratio" min="1" max="20" value="12" step="0.5" class="w-full">
+                    <span id="compressor-ratio-value" class="block text-center text-gray-400 mt-1">12:1</span>
+                </div>
+            </div>
+            <button onclick="applyCompressor()">Apply Compressor</button>
+            <audio id="compressor-audio-player" controls class="hidden"></audio>
+            <a id="download-compressor-audio" download="compressed_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Compressed Audio</a>
+        </div>
+
+        <!-- Audio Equalizer (3-Band) -->
+        <div id="audio-equalizer" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Equalizer (3-Band)</h2>
+            <input type="file" id="eq-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="eq-low" class="block text-gray-300 text-sm font-bold mb-2">Low Gain (dB):</label>
+                    <input type="range" id="eq-low" min="-20" max="20" value="0" step="1" class="w-full">
+                    <span id="eq-low-value" class="block text-center text-gray-400 mt-1">0 dB</span>
+                </div>
+                <div>
+                    <label for="eq-mid" class="block text-gray-300 text-sm font-bold mb-2">Mid Gain (dB):</label>
+                    <input type="range" id="eq-mid" min="-20" max="20" value="0" step="1" class="w-full">
+                    <span id="eq-mid-value" class="block text-center text-gray-400 mt-1">0 dB</span>
+                </div>
+                <div>
+                    <label for="eq-high" class="block text-gray-300 text-sm font-bold mb-2">High Gain (dB):</label>
+                    <input type="range" id="eq-high" min="-20" max="20" value="0" step="1" class="w-full">
+                    <span id="eq-high-value" class="block text-center text-gray-400 mt-1">0 dB</span>
+                </div>
+            </div>
+            <button onclick="applyEqualizer()">Apply Equalizer</button>
+            <audio id="eq-audio-player" controls class="hidden"></audio>
+            <a id="download-eq-audio" download="eq_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download EQ Audio</a>
+        </div>
+
+        <!-- Vocal Isolation (Basic) -->
+        <div id="vocal-isolation" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Vocal Isolation (Basic)</h2>
+            <input type="file" id="vocal-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <p class="text-gray-300 mb-4">Attempts to remove vocals using a basic phase cancellation technique. Works best with stereo audio where vocals are centered.</p>
+            <button onclick="isolateVocals()">Isolate Vocals</button>
+            <audio id="vocal-audio-player" controls class="hidden"></audio>
+            <a id="download-vocal-audio" download="instrumental_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Instrumental Audio</a>
+        </div>
+
+        <!-- Stereo Widener (Simple) -->
+        <div id="stereo-widener" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Stereo Widener (Simple)</h2>
+            <input type="file" id="widener-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="widener-amount" class="block text-gray-300 text-sm font-bold mb-2">Widening Amount (0-1):</label>
+                <input type="range" id="widener-amount" min="0" max="1" value="0.5" step="0.05" class="w-full">
+                <span id="widener-amount-value" class="block text-center text-gray-400 mt-1">0.5</span>
+            </div>
+            <button onclick="widenStereo()">Widen Stereo</button>
+            <audio id="widener-audio-player" controls class="hidden"></audio>
+            <a id="download-widener-audio" download="widened_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Widened Audio</a>
+        </div>
+
+        <!-- Audio Fade In/Out -->
+        <div id="audio-fade" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Fade In/Out</h2>
+            <input type="file" id="fade-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="fade-in-duration" class="block text-gray-300 text-sm font-bold mb-2">Fade In Duration (seconds):</label>
+                    <input type="number" id="fade-in-duration" value="2" min="0" step="0.1" placeholder="2">
+                </div>
+                <div>
+                    <label for="fade-out-duration" class="block text-gray-300 text-sm font-bold mb-2">Fade Out Duration (seconds):</label>
+                    <input type="number" id="fade-out-duration" value="2" min="0" step="0.1" placeholder="2">
+                </div>
+            </div>
+            <button onclick="applyFadeInOut()">Apply Fade In/Out</button>
+            <audio id="fade-audio-player" controls class="hidden"></audio>
+            <a id="download-fade-audio" download="faded_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Faded Audio</a>
+        </div>
+
+        <!-- Audio Bitcrusher -->
+        <div id="audio-bitcrusher" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Audio Bitcrusher</h2>
+            <input type="file" id="bitcrusher-audio-input" accept="audio/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-col gap-4 mb-4">
+                <div>
+                    <label for="bit-depth" class="block text-gray-300 text-sm font-bold mb-2">Bit Depth (1-16):</label>
+                    <input type="range" id="bit-depth" min="1" max="16" value="8" step="1" class="w-full">
+                    <span id="bit-depth-value" class="block text-center text-gray-400 mt-1">8 bits</span>
+                </div>
+                <div>
+                    <label for="sample-rate-reduction" class="block text-gray-300 text-sm font-bold mb-2">Sample Rate Reduction (1-10):</label>
+                    <input type="range" id="sample-rate-reduction" min="1" max="10" value="1" step="1" class="w-full">
+                    <span id="sample-rate-reduction-value" class="block text-center text-gray-400 mt-1">1x</span>
+                </div>
+            </div>
+            <button onclick="applyBitcrusher()">Apply Bitcrusher</button>
+            <audio id="bitcrusher-audio-player" controls class="hidden"></audio>
+            <a id="download-bitcrusher-audio" download="bitcrushed_audio.wav" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Bitcrushed Audio</a>
+        </div>
+
+        <!-- Album Art Cropper (Square) -->
+        <div id="album-art-cropper" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Album Art Cropper (Square)</h2>
+            <input type="file" id="cropper-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <p class="text-gray-300">Upload an image. The app will automatically crop it to the largest possible square from the center.</p>
+            </div>
+            <button onclick="cropImageToSquare()">Crop to Square</button>
+            <canvas id="cropper-canvas" class="mt-4"></canvas>
+            <a id="download-cropped-image" download="cropped_album_art.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Cropped Image</a>
+        </div>
+
+        <!-- Album Art Resizer (Presets) -->
+        <div id="album-art-resizer" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Album Art Resizer (Presets)</h2>
+            <input type="file" id="resizer-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="resize-preset" class="block text-gray-300 text-sm font-bold mb-2">Choose Preset Size:</label>
+                <select id="resize-preset" class="w-full p-2 border rounded-md mb-2">
+                    <option value="600x600">600x600 px (Common)</option>
+                    <option value="1000x1000">1000x1000 px (Standard)</option>
+                    <option value="3000x3000">3000x3000 px (High Res)</option>
+                </select>
+            </div>
+            <button onclick="resizeAlbumArt()">Resize Album Art</button>
+            <canvas id="resizer-canvas" class="mt-4"></canvas>
+            <a id="download-resized-album-art" download="resized_album_art.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Resized Album Art</a>
+        </div>
+
+        <!-- Text Overlay for Album Art -->
+        <div id="text-overlay-art" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Text Overlay for Album Art</h2>
+            <input type="file" id="overlay-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="overlay-text" class="block text-gray-300 text-sm font-bold mb-2">Text to Overlay:</label>
+                <input type="text" id="overlay-text" placeholder="Enter text here..." class="mb-2">
+                <label for="text-color" class="block text-gray-300 text-sm font-bold mb-2">Text Color:</label>
+                <input type="color" id="text-color" value="#FFFFFF" class="w-full h-10 mb-2">
+                <label for="font-size" class="block text-gray-300 text-sm font-bold mb-2">Font Size (px):</label>
+                <input type="number" id="font-size" value="48" min="10" step="1" class="mb-2">
+                <label for="text-position" class="block text-gray-300 text-sm font-bold mb-2">Text Position:</label>
+                <select id="text-position" class="w-full p-2 border rounded-md mb-2">
+                    <option value="top-left">Top Left</option>
+                    <option value="top-center">Top Center</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="center">Center</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-center">Bottom Center</option>
+                    <option value="bottom-right">Bottom Right</option>
+                </select>
+            </div>
+            <button onclick="applyTextOverlay()">Apply Text Overlay</button>
+            <canvas id="overlay-canvas" class="mt-4"></canvas>
+            <a id="download-overlay-image" download="album_art_with_text.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Image with Text</a>
+        </div>
+
+        <!-- Image Color Filter (Sepia) -->
+        <div id="image-sepia-filter" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image Color Filter (Sepia)</h2>
+            <input type="file" id="sepia-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <button onclick="applySepiaFilter()">Apply Sepia Filter</button>
+            <canvas id="sepia-canvas" class="mt-4"></canvas>
+            <a id="download-sepia-image" download="sepia_image.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Sepia Image</a>
+        </div>
+
+        <!-- Image Watermarker (Text) -->
+        <div id="image-watermarker" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image Watermarker (Text)</h2>
+            <input type="file" id="watermark-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="watermark-text" class="block text-gray-300 text-sm font-bold mb-2">Watermark Text:</label>
+                <input type="text" id="watermark-text" placeholder="Your watermark here..." class="mb-2">
+                <label for="watermark-opacity" class="block text-gray-300 text-sm font-bold mb-2">Opacity:</label>
+                <input type="range" id="watermark-opacity" min="0.1" max="1" value="0.5" step="0.1" class="w-full">
+                <span id="watermark-opacity-value" class="block text-center text-gray-400 mt-1">0.5</span>
+                <label for="watermark-position" class="block text-gray-300 text-sm font-bold mb-2">Position:</label>
+                <select id="watermark-position" class="w-full p-2 border rounded-md mb-2">
+                    <option value="top-left">Top Left</option>
+                    <option value="top-center">Top Center</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="center">Center</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-center">Bottom Center</option>
+                    <option value="bottom-right">Bottom Right</option>
+                </select>
+            </div>
+            <button onclick="applyWatermark()">Apply Watermark</button>
+            <canvas id="watermark-canvas" class="mt-4"></canvas>
+            <a id="download-watermarked-image" download="watermarked_image.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Watermarked Image</a>
+        </div>
+
+        <!-- Image Sharpen/Blur -->
+        <div id="image-sharpen-blur" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image Sharpen/Blur</h2>
+            <input type="file" id="sharpen-blur-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="sharpen-blur-amount" class="block text-gray-300 text-sm font-bold mb-2">Amount:</label>
+                <input type="range" id="sharpen-blur-amount" min="-10" max="10" value="0" step="1" class="w-full">
+                <span id="sharpen-blur-value" class="block text-center text-gray-400 mt-1">0 (Neutral)</span>
+            </div>
+            <button onclick="applySharpenBlur()">Apply Sharpen/Blur</button>
+            <canvas id="sharpen-blur-canvas" class="mt-4"></canvas>
+            <a id="download-sharpen-blur-image" download="processed_image.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Processed Image</a>
+        </div>
+
+        <!-- Image to Monochrome (B&W) -->
+        <div id="image-monochrome" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image to Monochrome (B&W)</h2>
+            <input type="file" id="monochrome-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <button onclick="applyMonochrome()">Apply Monochrome</button>
+            <canvas id="monochrome-canvas" class="mt-4"></canvas>
+            <a id="download-monochrome-image" download="monochrome_image.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Monochrome Image</a>
+        </div>
+
+        <!-- Image Mirror/Flip -->
+        <div id="image-mirror-flip" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image Mirror/Flip</h2>
+            <input type="file" id="mirror-flip-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button onclick="applyMirrorFlip('horizontal')">Mirror Horizontal</button>
+                <button onclick="applyMirrorFlip('vertical')">Mirror Vertical</button>
+                <button onclick="applyMirrorFlip('flip-horizontal')">Flip Horizontal</button>
+                <button onclick="applyMirrorFlip('flip-vertical')">Flip Vertical</button>
+            </div>
+            <canvas id="mirror-flip-canvas" class="mt-4"></canvas>
+            <a id="download-mirror-flip-image" download="mirrored_flipped_image.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Image</a>
+        </div>
+
+        <!-- Image Compression (Lossy/Simple) -->
+        <div id="image-compression" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image Compression (Lossy/Simple)</h2>
+            <input type="file" id="compress-image-input" accept="image/jpeg,image/png" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="compression-quality" class="block text-gray-300 text-sm font-bold mb-2">Quality (0.1-1.0):</label>
+                <input type="range" id="compression-quality" min="0.1" max="1" value="0.8" step="0.05" class="w-full">
+                <span id="compression-quality-value" class="block text-center text-gray-400 mt-1">0.8</span>
+            </div>
+            <button onclick="applyImageCompression()">Compress Image</button>
+            <canvas id="compress-canvas" class="mt-4"></canvas>
+            <a id="download-compressed-image" download="compressed_image.jpg" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Compressed Image</a>
+        </div>
+
+        <!-- Image to Icon Converter (PNG) -->
+        <div id="image-icon-converter" class="utility-section">
+            <h2 class="text-2xl font-bold text-white mb-4">Image to Icon Converter (PNG)</h2>
+            <input type="file" id="icon-image-input" accept="image/*" class="mb-4 p-2 border rounded-lg">
+            <div class="mb-4">
+                <label for="icon-size-preset" class="block text-gray-300 text-sm font-bold mb-2">Choose Icon Size:</label>
+                <select id="icon-size-preset" class="w-full p-2 border rounded-md mb-2">
+                    <option value="16">16x16 px</option>
+                    <option value="32">32x32 px</option>
+                    <option value="64">64x64 px</option>
+                    <option value="128">128x128 px</option>
+                </select>
+            </div>
+            <button onclick="convertImageToIcon()">Convert to Icon</button>
+            <canvas id="icon-canvas" class="mt-4"></canvas>
+            <a id="download-icon-image" download="icon.png" class="hidden mt-4 text-center block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer">Download Icon</a>
+        </div>
+
+        <!-- Navigation Tabs (Moved to bottom) -->
+        <div class="flex flex-wrap justify-center gap-3 mt-6 tab-container">
+            <button class="tab-button active" data-tab="audio-trimmer">Trimmer</button>
+            <button class="tab-button" data-tab="audio-normalizer">Normalizer</button>
+            <button class="tab-button" data-tab="audio-reverser">Reverser</button>
+            <button class="tab-button" data-tab="audio-speed-changer">Speed Changer</button>
+            <button class="tab-button" data-tab="audio-looper">Looper</button>
+            <button class="tab-button" data-tab="audio-delay">Delay</button>
+            <button class="tab-button" data-tab="audio-compressor">Compressor</button>
+            <button class="tab-button" data-tab="audio-equalizer">Equalizer</button>
+            <button class="tab-button" data-tab="vocal-isolation">Vocal Isolate</button>
+            <button class="tab-button" data-tab="stereo-widener">Stereo Widener</button>
+            <button class="tab-button" data-tab="audio-fade">Fade In/Out</button>
+            <button class="tab-button" data-tab="audio-bitcrusher">Bitcrusher</button>
+            <button class="tab-button" data-tab="album-art-cropper">Art Cropper</button>
+            <button class="tab-button" data-tab="album-art-resizer">Art Resizer</button>
+            <button class="tab-button" data-tab="text-overlay-art">Text Overlay</button>
+            <button class="tab-button" data-tab="image-sepia-filter">Sepia Filter</button>
+            <button class="tab-button" data-tab="image-watermarker">Watermarker</button>
+            <button class="tab-button" data-tab="image-sharpen-blur">Sharpen/Blur</button>
+            <button class="tab-button" data-tab="image-monochrome">Monochrome</button>
+            <button class="tab-button" data-tab="image-mirror-flip">Mirror/Flip</button>
+            <button class="tab-button" data-tab="image-compression">Compression</button>
+            <button class="tab-button" data-tab="image-icon-converter">Icon Converter</button>
+        </div>
+
+        <!-- Promotional Links Section -->
+        <div class="promotional-links">
+            <h3>More from Charles Paris Music!</h3>
+            <!-- Kept links -->
+            <a href="https://365otg.github.io/CPU/" target="_blank" rel="noopener noreferrer">Charles Paris Utilities</a>
+            <a href="https://365otg.github.io/365CP/" target="_blank" rel="noopener noreferrer">My Website</a>
+            <a href="https://paypal.me/overtimegrind" target="_blank" rel="noopener noreferrer">Donate $10</a>
+        </div>
+
+        <!-- Footer Links (now empty or removed if no other content) -->
+        <!-- The footer-links div is now empty as requested, if no other content was intended for it. -->
+
+    </div>
+
+    <!-- Custom Message Box HTML -->
+    <div id="message-box">
+        <p id="message-text"></p>
+        <button onclick="hideMessage()">OK</button>
+    </div>
+
+    <script>
+        // Global AudioContext for all audio operations
+        let audioContext;
+
+        // --- Utility Functions ---
+
+        /**
+         * Shows a custom message box instead of alert().
+         * @param {string} message - The message to display.
+         * @param {boolean} isError - True if it's an error message, false otherwise.
+         */
+        function showMessage(message, isError = false) {
+            const msgBox = document.getElementById('message-box');
+            const msgText = document.getElementById('message-text');
+            msgText.textContent = message;
+            if (isError) {
+                msgBox.classList.add('error');
+            } else {
+                msgBox.classList.remove('error');
+            }
+            msgBox.style.display = 'block';
+        }
+
+        /**
+         * Hides the custom message box.
+         */
+        function hideMessage() {
+            document.getElementById('message-box').style.display = 'none';
+        }
+
+        /**
+         * Converts an AudioBuffer to a WAV Blob.
+         * @param {AudioBuffer} audioBuffer - The AudioBuffer to convert.
+         * @returns {Blob} A Blob representing the WAV file.
+         */
+        function audioBufferToWavBlob(audioBuffer) {
+            const numOfChan = audioBuffer.numberOfChannels;
+            const length = audioBuffer.length * numOfChan * 2 + 44; // 2 bytes per sample, 44 bytes for header
+            const buffer = new ArrayBuffer(length);
+            const view = new DataView(buffer);
+            const channels = [];
+            let offset = 0;
+            let i = 0;
+            let sample;
+
+            // Write WAV header
+            // RIFF chunk descriptor
+            writeString(view, offset, 'RIFF'); offset += 4;
+            view.setUint32(offset, length - 8, true); offset += 4;
+            writeString(view, offset, 'WAVE'); offset += 4;
+            // FMT sub-chunk
+            writeString(view, offset, 'fmt '); offset += 4;
+            view.setUint32(offset, 16, true); offset += 4; // Subchunk1Size for PCM
+            view.setUint16(offset, 1, true); offset += 2; // AudioFormat (1 = PCM)
+            view.setUint16(offset, numOfChan, true); offset += 2; // NumChannels
+            view.setUint32(offset, audioBuffer.sampleRate, true); offset += 4; // SampleRate
+            view.setUint32(offset, audioBuffer.sampleRate * numOfChan * 2, true); offset += 4; // ByteRate
+            view.setUint16(offset, numOfChan * 2, true); offset += 2; // BlockAlign
+            view.setUint16(offset, 16, true); offset += 2; // BitsPerSample
+            // DATA sub-chunk
+            writeString(view, offset, 'data'); offset += 4;
+            view.setUint32(offset, length - offset - 4, true); offset += 4; // Subchunk2Size
+
+            // Get channel data
+            for (i = 0; i < numOfChan; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+
+            while (offset < length) {
+                for (i = 0; i < numOfChan; i++) {
+                    sample = Math.max(-1, Math.min(1, channels[i][(offset - 44) / (numOfChan * 2)])); // Clamp to -1 to 1
+                    sample = (sample < 0 ? sample * 0x8000 : sample * 0x7FFF); // Convert to 16-bit
+                    view.setInt16(offset, sample, true); offset += 2;
+                }
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+        }
+
+        // --- Tab Navigation Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab-button');
+            const sections = document.querySelectorAll('.utility-section');
+
+            /**
+             * Activates the selected tab and displays its corresponding section.
+             * @param {string} tabId - The ID of the tab/section to activate.
+             */
+            function activateTab(tabId) {
+                // Deactivate all tabs and hide all sections
+                tabs.forEach(tab => tab.classList.remove('active'));
+                sections.forEach(section => section.classList.remove('active'));
+
+                // Activate the clicked tab and show its section
+                const activeTabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+                const activeSection = document.getElementById(tabId);
+
+                if (activeTabButton) {
+                    activeTabButton.classList.add('active');
+                }
+                if (activeSection) {
+                    activeSection.classList.add('active');
+                }
+            }
+
+            // Add click listeners to all tab buttons
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    activateTab(tabId);
+                });
+            });
+
+            // Activate the first tab by default on load
+            if (tabs.length > 0) {
+                activateTab(tabs[0].dataset.tab);
+            }
+
+            // Initialize AudioContext on user gesture (first click)
+            document.body.addEventListener('click', () => {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }, { once: true });
+
+            // Initialize range slider displays and add listeners
+            document.getElementById('target-peak-db').addEventListener('input', (e) => {
+                document.getElementById('target-peak-value').textContent = `${e.target.value} dBFS`;
+            });
+            // Removed pitch-shift-semitones listener
+            document.getElementById('speed-change-rate').addEventListener('input', (e) => {
+                document.getElementById('speed-change-value').textContent = `${e.target.value}x`;
+            });
+            // Removed reverb-decay listener
+            document.getElementById('delay-time').addEventListener('input', (e) => {
+                document.getElementById('delay-time-value').textContent = `${e.target.value}s`;
+            });
+            document.getElementById('delay-feedback').addEventListener('input', (e) => {
+                document.getElementById('delay-feedback-value').textContent = `${e.target.value}`;
+            });
+            document.getElementById('compressor-threshold').addEventListener('input', (e) => {
+                document.getElementById('compressor-threshold-value').textContent = `${e.target.value} dB`;
+            });
+            document.getElementById('compressor-ratio').addEventListener('input', (e) => {
+                document.getElementById('compressor-ratio-value').textContent = `${e.target.value}:1`;
+            });
+            document.getElementById('eq-low').addEventListener('input', (e) => {
+                document.getElementById('eq-low-value').textContent = `${e.target.value} dB`;
+            });
+            document.getElementById('eq-mid').addEventListener('input', (e) => {
+                document.getElementById('eq-mid-value').textContent = `${e.target.value} dB`;
+            });
+            document.getElementById('eq-high').addEventListener('input', (e) => {
+                document.getElementById('eq-high-value').textContent = `${e.target.value} dB`;
+            });
+            document.getElementById('widener-amount').addEventListener('input', (e) => {
+                document.getElementById('widener-amount-value').textContent = `${e.target.value}`;
+            });
+            document.getElementById('bit-depth').addEventListener('input', (e) => {
+                document.getElementById('bit-depth-value').textContent = `${e.target.value} bits`;
+            });
+            document.getElementById('sample-rate-reduction').addEventListener('input', (e) => {
+                document.getElementById('sample-rate-reduction-value').textContent = `${e.target.value}x`;
+            });
+            // Removed flanger-phaser-depth and flanger-phaser-rate listeners
+            document.getElementById('watermark-opacity').addEventListener('input', (e) => {
+                document.getElementById('watermark-opacity-value').textContent = `${e.target.value}`;
+            });
+            document.getElementById('sharpen-blur-amount').addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                let text = val === 0 ? '0 (Neutral)' : (val > 0 ? `Sharpen ${val}` : `Blur ${Math.abs(val)}`);
+                document.getElementById('sharpen-blur-value').textContent = text;
+            });
+            document.getElementById('compression-quality').addEventListener('input', (e) => {
+                document.getElementById('compression-quality-value').textContent = `${e.target.value}`;
+            });
+        });
+
+        // --- Audio Processing Helper Function ---
+        /**
+         * Loads an audio file from input and decodes it into an AudioBuffer.
+         * @param {HTMLInputElement} fileInput - The file input element.
+         * @returns {Promise<AudioBuffer>} A promise that resolves with the decoded AudioBuffer.
+         */
+        async function loadAudioFile(fileInput) {
+            if (!audioContext) {
+                showMessage('Please click anywhere on the page first to enable audio processing.', true);
+                return Promise.reject('AudioContext not initialized.');
+            }
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please upload an audio file.', true);
+                return Promise.reject('No file selected.');
+            }
+            const arrayBuffer = await file.arrayBuffer();
+            return audioContext.decodeAudioData(arrayBuffer);
+        }
+
+        /**
+         * Plays an AudioBuffer and sets it as source for a download link.
+         * @param {AudioBuffer} audioBuffer - The AudioBuffer to play and make downloadable.
+         * @param {string} playerElementId - ID of the <audio> element.
+         * @param {string} downloadLinkElementId - ID of the <a> download link.
+         * @param {string} [filename] - Optional filename for the download.
+         */
+        function playAndDownloadAudio(audioBuffer, playerElementId, downloadLinkElementId, filename = 'processed_audio.wav') {
+            const player = document.getElementById(playerElementId);
+            const downloadLink = document.getElementById(downloadLinkElementId);
+
+            if (!player || !downloadLink) {
+                console.error('Player or download link element not found.');
+                return;
+            }
+
+            // Create a Blob from the AudioBuffer
+            const wavBlob = audioBufferToWavBlob(audioBuffer);
+            const url = URL.createObjectURL(wavBlob);
+
+            player.src = url;
+            player.classList.remove('hidden');
+            player.load(); // Load the new source
+            player.play().catch(e => console.error("Error playing audio:", e));
+
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            downloadLink.classList.remove('hidden');
+        }
+
+        // --- 1. Audio Trimmer Logic ---
+        async function trimAudio() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('trim-audio-input'));
+                const startTime = parseFloat(document.getElementById('trim-start').value);
+                const endTime = parseFloat(document.getElementById('trim-end').value);
+
+                if (isNaN(startTime) || isNaN(endTime) || startTime < 0 || endTime <= startTime || endTime > audioBuffer.duration) {
+                    showMessage('Please enter valid start and end times within the audio duration.', true);
+                    return;
+                }
+
+                const startSample = Math.floor(startTime * audioBuffer.sampleRate);
+                const endSample = Math.floor(endTime * audioBuffer.sampleRate);
+                const durationSamples = endSample - startSample;
+
+                const trimmedBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    durationSamples,
+                    audioBuffer.sampleRate
+                );
+
+                for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                    const originalChannelData = audioBuffer.getChannelData(i);
+                    const trimmedChannelData = trimmedBuffer.getChannelData(i);
+                    for (let j = 0; j < durationSamples; j++) {
+                        trimmedChannelData[j] = originalChannelData[startSample + j];
+                    }
+                }
+
+                playAndDownloadAudio(trimmedBuffer, 'trimmed-audio-player', 'download-trimmed-audio', 'trimmed_audio.wav');
+                showMessage('Audio trimmed successfully!');
+            } catch (error) {
+                console.error('Error trimming audio:', error);
+                showMessage('Failed to trim audio. Please check console for details.', true);
+            }
+        }
+
+        // --- 2. Audio Normalizer Logic ---
+        async function normalizeAudio() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('normalize-audio-input'));
+                const targetPeakDb = parseFloat(document.getElementById('target-peak-db').value);
+
+                if (isNaN(targetPeakDb)) {
+                    showMessage('Please set a valid target peak.', true);
+                    return;
+                }
+
+                let maxPeak = 0;
+                for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                    const channelData = audioBuffer.getChannelData(i);
+                    for (let j = 0; j < channelData.length; j++) {
+                        const sample = Math.abs(channelData[j]);
+                        if (sample > maxPeak) {
+                            maxPeak = sample;
+                        }
+                    }
+                }
+
+                if (maxPeak === 0) {
+                    showMessage('Audio is silent, cannot normalize.', true);
+                    return;
+                }
+
+                const currentPeakLinear = maxPeak;
+                const gainToZeroDb = 1.0 / currentPeakLinear;
+                const targetPeakLinear = Math.pow(10, targetPeakDb / 20);
+                const totalGainMultiplier = gainToZeroDb * targetPeakLinear;
+
+                const normalizedBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                    const originalChannelData = audioBuffer.getChannelData(i);
+                    const normalizedChannelData = normalizedBuffer.getChannelData(i);
+                    for (let j = 0; j < originalChannelData.length; j++) {
+                        normalizedChannelData[j] = originalChannelData[j] * totalGainMultiplier;
+                        normalizedChannelData[j] = Math.max(-1, Math.min(1, normalizedChannelData[j])); // Clamp values
+                    }
+                }
+
+                playAndDownloadAudio(normalizedBuffer, 'normalized-audio-player', 'download-normalized-audio', 'normalized_audio.wav');
+                showMessage('Audio normalized successfully!');
+            } catch (error) {
+                console.error('Error normalizing audio:', error);
+                showMessage('Failed to normalize audio. Please check console for details.', true);
+            }
+        }
+
+        // --- 3. Audio Reverser Logic ---
+        async function reverseAudio() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('reverse-audio-input'));
+
+                const reversedBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                    const originalChannelData = audioBuffer.getChannelData(i);
+                    const reversedChannelData = reversedBuffer.getChannelData(i);
+                    for (let j = 0; j < originalChannelData.length; j++) {
+                        reversedChannelData[j] = originalChannelData[originalChannelData.length - 1 - j];
+                    }
+                }
+
+                playAndDownloadAudio(reversedBuffer, 'reversed-audio-player', 'download-reversed-audio', 'reversed_audio.wav');
+                showMessage('Audio reversed successfully!');
+            } catch (error) {
+                console.error('Error reversing audio:', error);
+                showMessage('Failed to reverse audio. Please check console for details.', true);
+            }
+        }
+
+        // Removed Audio Pitch Shifter Logic
+
+        // --- 4. Audio Speed Changer Logic ---
+        async function changeAudioSpeed() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('speed-audio-input'));
+                const speedRate = parseFloat(document.getElementById('speed-change-rate').value);
+
+                if (isNaN(speedRate) || speedRate <= 0) {
+                    showMessage('Please set a valid speed rate (e.g., 0.5 to 2).', true);
+                    return;
+                }
+
+                const speedChangedBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                    speedChangedBuffer.getChannelData(i).set(audioBuffer.getChannelData(i));
+                }
+
+                const player = document.getElementById('speed-changed-audio-player');
+                const downloadLink = document.getElementById('download-speed-changed-audio');
+
+                const wavBlob = audioBufferToWavBlob(speedChangedBuffer);
+                const url = URL.createObjectURL(wavBlob);
+
+                player.src = url;
+                player.playbackRate = speedRate;
+                player.classList.remove('hidden');
+                player.load();
+                player.play().catch(e => console.error("Error playing audio:", e));
+
+                downloadLink.href = url;
+                downloadLink.download = `speed_changed_audio_${speedRate}x.wav`;
+                downloadLink.classList.remove('hidden');
+
+                showMessage(`Audio speed changed to ${speedRate}x (pitch also changes). Downloaded as WAV.`);
+            } catch (error) {
+                console.error('Error changing audio speed:', error);
+                showMessage('Failed to change audio speed. Please check console for details.', true);
+            }
+        }
+
+        // --- 5. Simple Audio Looper Logic ---
+        async function loopAudio() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('looper-audio-input'));
+                const loopStart = parseFloat(document.getElementById('loop-start').value);
+                const loopEnd = parseFloat(document.getElementById('loop-end').value);
+                const loopCount = parseInt(document.getElementById('loop-count').value);
+
+                if (isNaN(loopStart) || isNaN(loopEnd) || isNaN(loopCount) || loopStart < 0 || loopEnd <= loopStart || loopEnd > audioBuffer.duration || loopCount < 1) {
+                    showMessage('Please enter valid loop times and count.', true);
+                    return;
+                }
+
+                const segmentDuration = loopEnd - loopStart;
+                const totalDuration = segmentDuration * loopCount;
+                const looperBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    Math.floor(totalDuration * audioBuffer.sampleRate),
+                    audioBuffer.sampleRate
+                );
+
+                const startSample = Math.floor(loopStart * audioBuffer.sampleRate);
+                const endSample = Math.floor(loopEnd * audioBuffer.sampleRate);
+                const segmentSamples = endSample - startSample;
+
+                for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                    const originalChannelData = audioBuffer.getChannelData(channel);
+                    const looperChannelData = looperBuffer.getChannelData(channel);
+                    for (let i = 0; i < loopCount; i++) {
+                        const destinationOffset = i * segmentSamples;
+                        for (let j = 0; j < segmentSamples; j++) {
+                            looperChannelData[destinationOffset + j] = originalChannelData[startSample + j];
+                        }
+                    }
+                }
+
+                playAndDownloadAudio(looperBuffer, 'looper-audio-player', 'download-looped-audio', 'looped_audio.wav');
+                showMessage('Looped audio created successfully!');
+            } catch (error) {
+                console.error('Error looping audio:', error);
+                showMessage('Failed to loop audio. Please check console for details.', true);
+            }
+        }
+
+        // Removed Basic Reverb Effect Logic
+
+        // --- 6. Basic Delay/Echo Effect Logic ---
+        async function applyDelay() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('delay-audio-input'));
+                const delayTime = parseFloat(document.getElementById('delay-time').value);
+                const feedback = parseFloat(document.getElementById('delay-feedback').value);
+
+                if (isNaN(delayTime) || delayTime <= 0 || isNaN(feedback) || feedback < 0 || feedback >= 1) {
+                    showMessage('Please enter valid delay time and feedback values.', true);
+                    return;
+                }
+
+                const delaySamples = Math.floor(delayTime * audioBuffer.sampleRate);
+                const outputBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length + delaySamples * 3, // Extend for echoes
+                    audioBuffer.sampleRate
+                );
+
+                for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                    const inputData = audioBuffer.getChannelData(channel);
+                    const outputData = outputBuffer.getChannelData(channel);
+
+                    // Copy original audio
+                    for (let i = 0; i < inputData.length; i++) {
+                        outputData[i] = inputData[i];
+                    }
+
+                    // Apply delay with feedback
+                    let currentEcho = new Float32Array(inputData); // Start with original signal
+                    let currentFeedback = 1.0;
+
+                    for (let echoCount = 0; echoCount < 10; echoCount++) { // Limit echoes
+                        currentFeedback *= feedback;
+                        if (currentFeedback < 0.01) break; // Stop if feedback is too low
+
+                        for (let i = 0; i < currentEcho.length; i++) {
+                            const delayedIndex = i + delaySamples * (echoCount + 1);
+                            if (delayedIndex < outputData.length) {
+                                outputData[delayedIndex] += currentEcho[i] * currentFeedback;
+                            }
+                        }
+                    }
+                }
+
+                playAndDownloadAudio(outputBuffer, 'delay-audio-player', 'download-delay-audio', 'delay_audio.wav');
+                showMessage('Delay/Echo applied successfully!');
+            } catch (error) {
+                console.error('Error applying delay:', error);
+                showMessage('Failed to apply delay. Please check console for details.', true);
+            }
+        }
+
+        // --- 7. Audio Compressor (Simple) Logic ---
+        async function applyCompressor() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('compressor-audio-input'));
+                const threshold = parseFloat(document.getElementById('compressor-threshold').value); // dB
+                const ratio = parseFloat(document.getElementById('compressor-ratio').value); // ratio:1
+
+                if (isNaN(threshold) || isNaN(ratio) || ratio < 1) {
+                    showMessage('Please enter valid compressor parameters.', true);
+                    return;
+                }
+
+                // Create a DynamicsCompressorNode
+                const compressorNode = audioContext.createDynamicsCompressor();
+                compressorNode.threshold.setValueAtTime(threshold, audioContext.currentTime);
+                compressorNode.ratio.setValueAtTime(ratio, audioContext.currentTime);
+                compressorNode.attack.setValueAtTime(0.003, audioContext.currentTime); // Fast attack
+                compressorNode.release.setValueAtTime(0.250, audioContext.currentTime); // Medium release
+                compressorNode.knee.setValueAtTime(30, audioContext.currentTime); // Soft knee
+
+                // To get the processed audio, we need to capture it.
+                // This requires using an OfflineAudioContext.
+                const offlineCtx = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                const offlineSource = offlineCtx.createBufferSource();
+                offlineSource.buffer = audioBuffer;
+
+                const offlineCompressor = offlineCtx.createDynamicsCompressor();
+                offlineCompressor.threshold.setValueAtTime(threshold, offlineCtx.currentTime);
+                offlineCompressor.ratio.setValueAtTime(ratio, offlineCtx.currentTime);
+                offlineCompressor.attack.setValueAtTime(0.003, offlineCtx.currentTime);
+                offlineCompressor.release.setValueAtTime(0.250, offlineCtx.currentTime);
+                offlineCompressor.knee.setValueAtTime(30, offlineCtx.currentTime);
+
+                offlineSource.connect(offlineCompressor);
+                offlineCompressor.connect(offlineCtx.destination);
+
+                offlineSource.start(0); // Start at time 0 in offline context
+
+                const processedBuffer = await offlineCtx.startRendering();
+
+                playAndDownloadAudio(processedBuffer, 'compressor-audio-player', 'download-compressor-audio', 'compressed_audio.wav');
+                showMessage('Compressor applied successfully!');
+            } catch (error) {
+                console.error('Error applying compressor:', error);
+                showMessage('Failed to apply compressor. Please check console for details.', true);
+            }
+        }
+
+        // --- 8. Audio Equalizer (3-Band) Logic ---
+        async function applyEqualizer() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('eq-audio-input'));
+                const lowGain = parseFloat(document.getElementById('eq-low').value);
+                const midGain = parseFloat(document.getElementById('eq-mid').value);
+                const highGain = parseFloat(document.getElementById('eq-high').value);
+
+                if (isNaN(lowGain) || isNaN(midGain) || isNaN(highGain)) {
+                    showMessage('Please set valid EQ gain values.', true);
+                    return;
+                }
+
+                const offlineCtx = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                const source = offlineCtx.createBufferSource();
+                source.buffer = audioBuffer;
+
+                // Low-shelf filter
+                const lowFilter = offlineCtx.createBiquadFilter();
+                lowFilter.type = 'lowshelf';
+                lowFilter.frequency.setValueAtTime(250, offlineCtx.currentTime); // Crossover for low
+                lowFilter.gain.setValueAtTime(lowGain, offlineCtx.currentTime);
+
+                // Peaking filter for mids
+                const midFilter = offlineCtx.createBiquadFilter();
+                midFilter.type = 'peaking';
+                midFilter.frequency.setValueAtTime(1000, offlineCtx.currentTime); // Center for mids
+                midFilter.Q.setValueAtTime(1, offlineCtx.currentTime); // Quality factor
+                midFilter.gain.setValueAtTime(midGain, offlineCtx.currentTime);
+
+                // High-shelf filter
+                const highFilter = offlineCtx.createBiquadFilter();
+                highFilter.type = 'highshelf';
+                highFilter.frequency.setValueAtTime(4000, offlineCtx.currentTime); // Crossover for high
+                highFilter.gain.setValueAtTime(highGain, offlineCtx.currentTime);
+
+                // Connect nodes: source -> low -> mid -> high -> destination
+                source.connect(lowFilter);
+                lowFilter.connect(midFilter);
+                midFilter.connect(highFilter);
+                highFilter.connect(offlineCtx.destination);
+
+                source.start(0);
+
+                const processedBuffer = await offlineCtx.startRendering();
+
+                playAndDownloadAudio(processedBuffer, 'eq-audio-player', 'download-eq-audio', 'eq_audio.wav');
+                showMessage('Equalizer applied successfully!');
+            } catch (error) {
+                console.error('Error applying equalizer:', error);
+                showMessage('Failed to apply equalizer. Please check console for details.', true);
+            }
+        }
+
+        // --- 9. Vocal Isolation (Basic) Logic ---
+        async function isolateVocals() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('vocal-input'));
+
+                if (audioBuffer.numberOfChannels !== 2) {
+                    showMessage('Vocal isolation works best with stereo audio files.', true);
+                    return;
+                }
+
+                const offlineCtx = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                const source = offlineCtx.createBufferSource();
+                source.buffer = audioBuffer;
+
+                // Create a splitter to separate left and right channels
+                const splitter = offlineCtx.createChannelSplitter(2);
+                source.connect(splitter);
+
+                // Create two gain nodes for left and right channels
+                const leftGain = offlineCtx.createGain();
+                const rightGain = offlineCtx.createGain();
+
+                // Connect left channel to left gain, right to right gain
+                splitter.connect(leftGain, 0); // Channel 0 (left)
+                splitter.connect(rightGain, 1); // Channel 1 (right)
+
+                // Invert the phase of one channel (e.g., right channel)
+                // This is the core of basic vocal removal via phase cancellation
+                rightGain.gain.setValueAtTime(-1, offlineCtx.currentTime);
+
+                // Create a merger to combine the processed channels back
+                const merger = offlineCtx.createChannelMerger(2);
+                leftGain.connect(merger, 0, 0); // Connect left to left input of merger
+                rightGain.connect(merger, 0, 1); // Connect inverted right to right input of merger
+
+                merger.connect(offlineCtx.destination);
+
+                source.start(0);
+
+                const processedBuffer = await offlineCtx.startRendering();
+
+                playAndDownloadAudio(processedBuffer, 'vocal-audio-player', 'download-vocal-audio', 'instrumental_audio.wav');
+                showMessage('Basic vocal isolation applied!');
+            } catch (error) {
+                console.error('Error isolating vocals:', error);
+                showMessage('Failed to isolate vocals. Please check console for details.', true);
+            }
+        }
+
+        // --- 10. Stereo Widener (Simple) Logic ---
+        async function widenStereo() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('widener-audio-input'));
+                const widenAmount = parseFloat(document.getElementById('widener-amount').value);
+
+                if (audioBuffer.numberOfChannels !== 2) {
+                    showMessage('Stereo widener requires a stereo audio file.', true);
+                    return;
+                }
+                if (isNaN(widenAmount) || widenAmount < 0 || widenAmount > 1) {
+                    showMessage('Please enter a valid widening amount (0-1).', true);
+                    return;
+                }
+
+                const offlineCtx = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                const source = offlineCtx.createBufferSource();
+                source.buffer = audioBuffer;
+
+                const splitter = offlineCtx.createChannelSplitter(2);
+                const merger = offlineCtx.createChannelMerger(2);
+
+                // Connect source to splitter
+                source.connect(splitter);
+
+                // Get left and right channels
+                const leftChannel = audioBuffer.getChannelData(0);
+                const rightChannel = audioBuffer.getChannelData(1);
+
+                // Create new buffers for processed channels
+                const widenedLeft = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
+                const widenedRight = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
+
+                const widenedLeftData = widenedLeft.getChannelData(0);
+                const widenedRightData = widenedRight.getChannelData(0);
+
+                // M/S processing simplified:
+                // Mid = (L + R) / 2
+                // Side = (L - R) / 2
+                // L' = Mid + Side * widenAmount
+                // R' = Mid - Side * widenAmount
+                for (let i = 0; i < audioBuffer.length; i++) {
+                    const mid = (leftChannel[i] + rightChannel[i]) / 2;
+                    const side = (leftChannel[i] - rightChannel[i]) / 2;
+
+                    widenedLeftData[i] = mid + side * widenAmount;
+                    widenedRightData[i] = mid - side * widenAmount;
+                }
+
+                // Create buffer sources for the widened channels
+                const widenedLeftSource = offlineCtx.createBufferSource();
+                widenedLeftSource.buffer = widenedLeft;
+                const widenedRightSource = offlineCtx.createBufferSource();
+                widenedRightSource.buffer = widenedRight;
+
+                // Connect to merger
+                widenedLeftSource.connect(merger, 0, 0);
+                widenedRightSource.connect(merger, 0, 1);
+
+                merger.connect(offlineCtx.destination);
+
+                widenedLeftSource.start(0);
+                widenedRightSource.start(0);
+
+                const processedBuffer = await offlineCtx.startRendering();
+
+                playAndDownloadAudio(processedBuffer, 'widener-audio-player', 'download-widener-audio', 'widened_audio.wav');
+                showMessage('Stereo widened successfully!');
+            } catch (error) {
+                console.error('Error widening stereo:', error);
+                showMessage('Failed to widen stereo. Please check console for details.', true);
+            }
+        }
+
+        // --- 11. Audio Fade In/Out Logic ---
+        async function applyFadeInOut() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('fade-audio-input'));
+                const fadeInDuration = parseFloat(document.getElementById('fade-in-duration').value);
+                const fadeOutDuration = parseFloat(document.getElementById('fade-out-duration').value);
+
+                if (isNaN(fadeInDuration) || fadeInDuration < 0 || isNaN(fadeOutDuration) || fadeOutDuration < 0) {
+                    showMessage('Please enter valid fade durations.', true);
+                    return;
+                }
+                if (fadeInDuration + fadeOutDuration > audioBuffer.duration) {
+                    showMessage('Fade durations cannot exceed total audio length.', true);
+                    return;
+                }
+
+                const fadedBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                const fadeInSamples = Math.floor(fadeInDuration * audioBuffer.sampleRate);
+                const fadeOutStartSample = audioBuffer.length - Math.floor(fadeOutDuration * audioBuffer.sampleRate);
+
+                for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                    const originalData = audioBuffer.getChannelData(channel);
+                    const fadedData = fadedBuffer.getChannelData(channel);
+
+                    for (let i = 0; i < originalData.length; i++) {
+                        let gain = 1.0;
+
+                        // Apply fade-in
+                        if (i < fadeInSamples) {
+                            gain = i / fadeInSamples;
+                        }
+                        // Apply fade-out
+                        else if (i > fadeOutStartSample) {
+                            gain = (audioBuffer.length - i) / (audioBuffer.length - fadeOutStartSample);
+                        }
+
+                        fadedData[i] = originalData[i] * gain;
+                    }
+                }
+
+                playAndDownloadAudio(fadedBuffer, 'fade-audio-player', 'download-fade-audio', 'faded_audio.wav');
+                showMessage('Fade in/out applied successfully!');
+            } catch (error) {
+                console.error('Error applying fade:', error);
+                showMessage('Failed to apply fade. Please check console for details.', true);
+            }
+        }
+
+        // --- 12. Audio Bitcrusher Logic ---
+        async function applyBitcrusher() {
+            try {
+                const audioBuffer = await loadAudioFile(document.getElementById('bitcrusher-audio-input'));
+                const bitDepth = parseInt(document.getElementById('bit-depth').value);
+                const sampleRateReduction = parseInt(document.getElementById('sample-rate-reduction').value);
+
+                if (isNaN(bitDepth) || bitDepth < 1 || bitDepth > 16 || isNaN(sampleRateReduction) || sampleRateReduction < 1) {
+                    showMessage('Please enter valid bit depth (1-16) and sample rate reduction (>=1).', true);
+                    return;
+                }
+
+                const bitcrushedBuffer = audioContext.createBuffer(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+
+                const quantizationLevels = Math.pow(2, bitDepth);
+
+                for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                    const originalData = audioBuffer.getChannelData(channel);
+                    const crushedData = bitcrushedBuffer.getChannelData(channel);
+
+                    let lastSample = 0; // For sample rate reduction
+
+                    for (let i = 0; i < originalData.length; i++) {
+                        // Sample rate reduction (downsampling with hold)
+                        if (i % sampleRateReduction === 0) {
+                            lastSample = originalData[i];
+                        }
+                        let sample = lastSample;
+
+                        // Bit depth reduction (quantization)
+                        sample = Math.round(sample * quantizationLevels) / quantizationLevels;
+
+                        crushedData[i] = sample;
+                    }
+                }
+
+                playAndDownloadAudio(bitcrushedBuffer, 'bitcrusher-audio-player', 'download-bitcrusher-audio', 'bitcrushed_audio.wav');
+                showMessage('Bitcrusher applied successfully!');
+            } catch (error) {
+                console.error('Error applying bitcrusher:', error);
+                showMessage('Failed to apply bitcrusher. Please check console for details.', true);
+            }
+        }
+
+        // Removed Audio Flanger/Phaser Logic
+
+        // --- Image Processing Helper Function ---
+        /**
+         * Loads an image file from input and draws it onto a canvas.
+         * @param {HTMLInputElement} fileInput - The file input element.
+         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+         * @returns {Promise<HTMLImageElement>} A promise that resolves with the loaded Image object.
+         */
+        async function loadImageFile(fileInput, canvas) {
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please upload an image file.', true);
+                return Promise.reject('No file selected.');
+            }
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawings
+                        ctx.drawImage(img, 0, 0);
+                        resolve(img);
+                    };
+                    img.onerror = reject;
+                    img.src = event.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /**
+         * Sets the download link for a canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas containing the image.
+         * @param {string} downloadLinkElementId - ID of the <a> download link.
+         * @param {string} filename - Desired filename for download.
+         * @param {string} [mimeType='image/png'] - Mime type for the download.
+         * @param {number} [quality] - Quality for JPEG (0-1).
+         */
+        function setCanvasDownloadLink(canvas, downloadLinkElementId, filename, mimeType = 'image/png', quality) {
+            const downloadLink = document.getElementById(downloadLinkElementId);
+            if (downloadLink) {
+                downloadLink.href = canvas.toDataURL(mimeType, quality);
+                downloadLink.download = filename;
+                downloadLink.classList.remove('hidden');
+            }
+        }
+
+        // --- 13. Album Art Cropper (Square) Logic ---
+        async function cropImageToSquare() {
+            try {
+                const canvas = document.getElementById('cropper-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('cropper-image-input'), canvas);
+
+                const size = Math.min(img.width, img.height);
+                const startX = (img.width - size) / 2;
+                const startY = (img.height - size) / 2;
+
+                canvas.width = size;
+                canvas.height = size;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, startX, startY, size, size, 0, 0, size, size);
+
+                setCanvasDownloadLink(canvas, 'download-cropped-image', 'cropped_album_art.png');
+                showMessage('Image cropped to square successfully!');
+            } catch (error) {
+                console.error('Error cropping image:', error);
+                showMessage('Failed to crop image. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 14. Album Art Resizer (Presets) Logic ---
+        async function resizeAlbumArt() {
+            try {
+                const canvas = document.getElementById('resizer-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('resizer-image-input'), canvas);
+                const preset = document.getElementById('resize-preset').value;
+                const [width, height] = preset.split('x').map(Number);
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, width, height);
+
+                setCanvasDownloadLink(canvas, 'download-resized-album-art', `resized_album_art_${preset}.png`);
+                showMessage(`Image resized to ${preset} successfully!`);
+            } catch (error) {
+                console.error('Error resizing album art:', error);
+                showMessage('Failed to resize album art. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 15. Text Overlay for Album Art Logic ---
+        async function applyTextOverlay() {
+            try {
+                const canvas = document.getElementById('overlay-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('overlay-image-input'), canvas);
+
+                const text = document.getElementById('overlay-text').value;
+                const textColor = document.getElementById('text-color').value;
+                const fontSize = parseInt(document.getElementById('font-size').value);
+                const position = document.getElementById('text-position').value;
+
+                if (!text) {
+                    showMessage('Please enter text to overlay.', true);
+                    return;
+                }
+                if (isNaN(fontSize) || fontSize <= 0) {
+                    showMessage('Please enter a valid font size.', true);
+                    return;
+                }
+
+                // Redraw original image first
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                ctx.font = `${fontSize}px Inter, sans-serif`;
+                ctx.fillStyle = textColor;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+
+                let x = 0;
+                let y = 0;
+                const padding = 20; // Padding from edges
+
+                // Measure text for centering
+                const textMetrics = ctx.measureText(text);
+                const textWidth = textMetrics.width;
+                const textHeight = fontSize; // Approximation for height
+
+                switch (position) {
+                    case 'top-left':
+                        x = padding;
+                        y = padding;
+                        break;
+                    case 'top-center':
+                        x = (canvas.width - textWidth) / 2;
+                        y = padding;
+                        break;
+                    case 'top-right':
+                        x = canvas.width - textWidth - padding;
+                        y = padding;
+                        break;
+                    case 'center':
+                        x = (canvas.width - textWidth) / 2;
+                        y = (canvas.height - textHeight) / 2;
+                        break;
+                    case 'bottom-left':
+                        x = padding;
+                        y = canvas.height - textHeight - padding;
+                        break;
+                    case 'bottom-center':
+                        x = (canvas.width - textWidth) / 2;
+                        y = canvas.height - textHeight - padding;
+                        break;
+                    case 'bottom-right':
+                        x = canvas.width - textWidth - padding;
+                        y = canvas.height - textHeight - padding;
+                        break;
+                }
+
+                ctx.fillText(text, x, y);
+
+                setCanvasDownloadLink(canvas, 'download-overlay-image', 'album_art_with_text.png');
+                showMessage('Text overlay applied successfully!');
+            } catch (error) {
+                console.error('Error applying text overlay:', error);
+                showMessage('Failed to apply text overlay. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 16. Image Color Filter (Sepia) Logic ---
+        async function applySepiaFilter() {
+            try {
+                const canvas = document.getElementById('sepia-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('sepia-image-input'), canvas);
+
+                // Redraw original image to get fresh pixel data
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+
+                    pixels[i] = (r * 0.393) + (g * 0.769) + (b * 0.189); // Red
+                    pixels[i + 1] = (r * 0.349) + (g * 0.686) + (b * 0.168); // Green
+                    pixels[i + 2] = (r * 0.272) + (g * 0.534) + (b * 0.131); // Blue
+
+                    // Clamp values to 0-255
+                    pixels[i] = Math.min(255, pixels[i]);
+                    pixels[i + 1] = Math.min(255, pixels[i + 1]);
+                    pixels[i + 2] = Math.min(255, pixels[i + 2]);
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                setCanvasDownloadLink(canvas, 'download-sepia-image', 'sepia_image.png');
+                showMessage('Sepia filter applied successfully!');
+            } catch (error) {
+                console.error('Error applying sepia filter:', error);
+                showMessage('Failed to apply sepia filter. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 17. Image Watermarker (Text) Logic ---
+        async function applyWatermark() {
+            try {
+                const canvas = document.getElementById('watermark-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('watermark-image-input'), canvas);
+
+                const watermarkText = document.getElementById('watermark-text').value;
+                const watermarkOpacity = parseFloat(document.getElementById('watermark-opacity').value);
+                const watermarkPosition = document.getElementById('watermark-position').value;
+
+                if (!watermarkText) {
+                    showMessage('Please enter watermark text.', true);
+                    return;
+                }
+                if (isNaN(watermarkOpacity) || watermarkOpacity < 0 || watermarkOpacity > 1) {
+                    showMessage('Please enter a valid opacity (0.1 to 1).', true);
+                    return;
+                }
+
+                // Redraw original image first
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                ctx.font = 'bold 40px Inter, sans-serif'; // Fixed font size for watermark
+                ctx.fillStyle = `rgba(255, 255, 255, ${watermarkOpacity})`; // White with opacity
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+
+                let x = 0;
+                let y = 0;
+                const padding = 20; // Padding from edges
+
+                // Measure text for centering
+                const textMetrics = ctx.measureText(watermarkText);
+                const textWidth = textMetrics.width;
+                const textHeight = 40; // Approx height for 40px font
+
+                switch (watermarkPosition) {
+                    case 'top-left':
+                        x = padding;
+                        y = padding;
+                        break;
+                    case 'top-center':
+                        x = (canvas.width - textWidth) / 2;
+                        y = padding;
+                        break;
+                    case 'top-right':
+                        x = canvas.width - textWidth - padding;
+                        y = padding;
+                        break;
+                    case 'center':
+                        x = (canvas.width - textWidth) / 2;
+                        y = (canvas.height - textHeight) / 2;
+                        break;
+                    case 'bottom-left':
+                        x = padding;
+                        y = canvas.height - textHeight - padding;
+                        break;
+                    case 'bottom-center':
+                        x = (canvas.width - textWidth) / 2;
+                        y = canvas.height - textHeight - padding;
+                        break;
+                    case 'bottom-right':
+                        x = canvas.width - textWidth - padding;
+                        y = canvas.height - textHeight - padding;
+                        break;
+                }
+
+                ctx.fillText(watermarkText, x, y);
+
+                setCanvasDownloadLink(canvas, 'download-watermarked-image', 'watermarked_image.png');
+                showMessage('Watermark applied successfully!');
+            } catch (error) {
+                console.error('Error applying watermark:', error);
+                showMessage('Failed to apply watermark. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 18. Image Sharpen/Blur Logic ---
+        async function applySharpenBlur() {
+            try {
+                const canvas = document.getElementById('sharpen-blur-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('sharpen-blur-image-input'), canvas);
+
+                const amount = parseInt(document.getElementById('sharpen-blur-amount').value);
+
+                if (isNaN(amount)) {
+                    showMessage('Please set a valid sharpen/blur amount.', true);
+                    return;
+                }
+
+                // Redraw original image to get fresh pixel data
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                const tempPixels = new Uint8ClampedArray(pixels.length);
+                tempPixels.set(pixels); // Copy original pixels for convolution
+
+                const width = canvas.width;
+                const height = canvas.height;
+
+                let kernel;
+                if (amount === 0) { // Neutral
+                    kernel = [0, 0, 0, 0, 1, 0, 0, 0, 0];
+                } else if (amount > 0) { // Sharpen
+                    const s = amount * 0.1; // Scale sharpen amount
+                    kernel = [
+                        0, -s, 0,
+                        -s, 1 + 4 * s, -s,
+                        0, -s, 0
+                    ];
+                } else { // Blur (simplified box blur)
+                    const b = Math.abs(amount) * 0.1; // Scale blur amount
+                    const blurRadius = Math.max(1, Math.floor(b * 3)); // Max 3x3 kernel
+                    const kernelSize = 2 * blurRadius + 1;
+                    const kernelValue = 1 / (kernelSize * kernelSize);
+                    kernel = Array(kernelSize * kernelSize).fill(kernelValue);
+                }
+
+                const kSize = Math.sqrt(kernel.length);
+                const halfK = Math.floor(kSize / 2);
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        let r = 0, g = 0, b = 0;
+                        for (let ky = 0; ky < kSize; ky++) {
+                            for (let kx = 0; kx < kSize; kx++) {
+                                const px = x + kx - halfK;
+                                const py = y + ky - halfK;
+
+                                if (px >= 0 && px < width && py >= 0 && py < height) {
+                                    const index = (py * width + px) * 4;
+                                    const kernelWeight = kernel[ky * kSize + kx];
+                                    r += tempPixels[index] * kernelWeight;
+                                    g += tempPixels[index + 1] * kernelWeight;
+                                    b += tempPixels[index + 2] * kernelWeight;
+                                }
+                            }
+                        }
+                        const outputIndex = (y * width + x) * 4;
+                        pixels[outputIndex] = Math.min(255, Math.max(0, r));
+                        pixels[outputIndex + 1] = Math.min(255, Math.max(0, g));
+                        pixels[outputIndex + 2] = Math.min(255, Math.max(0, b));
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                setCanvasDownloadLink(canvas, 'download-sharpen-blur-image', 'processed_image.png');
+                showMessage('Sharpen/Blur applied successfully!');
+            } catch (error) {
+                console.error('Error applying sharpen/blur:', error);
+                showMessage('Failed to apply sharpen/blur. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 19. Image to Monochrome (B&W) Logic ---
+        async function applyMonochrome() {
+            try {
+                const canvas = document.getElementById('monochrome-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('monochrome-image-input'), canvas);
+
+                // Redraw original image to get fresh pixel data
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+
+                    // Luminosity method for grayscale
+                    const gray = (0.2126 * r + 0.7152 * g + 0.0722 * b);
+
+                    pixels[i] = gray;     // Red
+                    pixels[i + 1] = gray; // Green
+                    pixels[i + 2] = gray; // Blue
+                    // Alpha (pixels[i + 3]) remains unchanged
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                setCanvasDownloadLink(canvas, 'download-monochrome-image', 'monochrome_image.png');
+                showMessage('Monochrome filter applied successfully!');
+            } catch (error) {
+                console.error('Error applying monochrome filter:', error);
+                showMessage('Failed to apply monochrome filter. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 20. Image Mirror/Flip Logic ---
+        async function applyMirrorFlip(type) {
+            try {
+                const canvas = document.getElementById('mirror-flip-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('mirror-flip-image-input'), canvas);
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                let scaleX = 1; // Horizontal scaling
+                let scaleY = 1; // Vertical scaling
+                let translateX = 0; // Horizontal translation
+                let translateY = 0; // Vertical translation
+
+                switch (type) {
+                    case 'horizontal':
+                        scaleX = -1;
+                        translateX = -img.width;
+                        break;
+                    case 'vertical':
+                        scaleY = -1;
+                        translateY = -img.height;
+                        break;
+                    case 'flip-horizontal': // Flip is same as mirror for a single image
+                        scaleX = -1;
+                        translateX = -img.width;
+                        break;
+                    case 'flip-vertical': // Flip is same as mirror for a single image
+                        scaleY = -1;
+                        translateY = -img.height;
+                        break;
+                }
+
+                ctx.translate(canvas.width / 2, canvas.height / 2); // Move origin to center
+                ctx.scale(scaleX, scaleY);
+                ctx.drawImage(img, -canvas.width / 2 + translateX, -canvas.height / 2 + translateY, canvas.width, canvas.height);
+                ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+
+                setCanvasDownloadLink(canvas, 'download-mirror-flip-image', `${type}_image.png`);
+                showMessage(`Image ${type} applied successfully!`);
+            } catch (error) {
+                console.error('Error applying mirror/flip:', error);
+                showMessage('Failed to apply mirror/flip. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 21. Image Compression (Lossy/Simple) Logic ---
+        async function applyImageCompression() {
+            try {
+                const canvas = document.getElementById('compress-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('compress-image-input'), canvas);
+
+                const quality = parseFloat(document.getElementById('compression-quality').value);
+                const mimeType = img.src.startsWith('data:image/jpeg') ? 'image/jpeg' : 'image/png'; // Preserve original type if possible
+
+                if (isNaN(quality) || quality < 0.1 || quality > 1.0) {
+                    showMessage('Please enter a valid quality (0.1 to 1.0).', true);
+                    return;
+                }
+
+                // Draw image to canvas (already done by loadImageFile)
+                // The compression happens when toDataURL is called with image/jpeg and quality
+                setCanvasDownloadLink(canvas, 'download-compressed-image', `compressed_image.${mimeType.split('/')[1]}`, mimeType, quality);
+                showMessage('Image compressed successfully!');
+            } catch (error) {
+                console.error('Error applying image compression:', error);
+                showMessage('Failed to apply image compression. Please ensure a valid image is uploaded.', true);
+            }
+        }
+
+        // --- 22. Image to Icon Converter (PNG) Logic ---
+        async function convertImageToIcon() {
+            try {
+                const canvas = document.getElementById('icon-canvas');
+                const ctx = canvas.getContext('2d');
+                const img = await loadImageFile(document.getElementById('icon-image-input'), canvas);
+
+                const iconSize = parseInt(document.getElementById('icon-size-preset').value);
+
+                if (isNaN(iconSize) || iconSize <= 0) {
+                    showMessage('Please select a valid icon size.', true);
+                    return;
+                }
+
+                canvas.width = iconSize;
+                canvas.height = iconSize;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, iconSize, iconSize); // Draw and scale to icon size
+
+                setCanvasDownloadLink(canvas, 'download-icon-image', `icon_${iconSize}x${iconSize}.png`, 'image/png');
+                showMessage(`Image converted to ${iconSize}x${iconSize} icon successfully!`);
+            } catch (error) {
+                console.error('Error converting image to icon:', error);
+                showMessage('Failed to convert image to icon. Please ensure a valid image is uploaded.', true);
+            }
+        }
+    </script>
+</body>
+</html>
